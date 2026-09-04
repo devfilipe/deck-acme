@@ -1,0 +1,31 @@
+# Profiles specific to how Acme works. They merge with deck's core profiles;
+# repeating a core name extends it rather than replacing it.
+version: 1
+
+profiles:
+  release:
+    title: Release candidate
+    summary: >
+      What runs before cutting a release: the whole ladder, the full suite, and
+      the contract treated as frozen.
+    values:
+      gate_level: behavior
+      test_depth: full
+      api_compat: strict
+      deploy_mode: full
+      migration_plan: required
+      doc_sync: required
+      plan_approval: always
+      question_budget: 4
+
+  dark_launch:
+    title: Dark launch
+    summary: >
+      New behaviour ships disabled and is switched on later. Fast to deliver,
+      because nothing is user-visible until the flag flips.
+    values:
+      feature_flag: required
+      gate_level: deploy
+      deploy_mode: packaged
+      test_depth: smoke
+      api_compat: additive

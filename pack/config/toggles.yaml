@@ -1,0 +1,153 @@
+# =============================================================================
+# ACME — DOMAIN TOGGLES
+# =============================================================================
+# Everything Acme-specific that deck's engine must not know about. The core
+# ships the universal decisions; this file adds the ones that only make sense
+# for a service with a published API, a database and a Kubernetes deployment.
+#
+# Two mechanisms are on display here:
+#
+#   NEW ENTRY      declared in the catalog format, exactly like a core toggle.
+#   OVERRIDE       repeat a core `id` with `overrides: true`. Without that flag
+#                  the merge is refused, so no pack shadows a core decision by
+#                  accident.
+# =============================================================================
+
+version: 1
+
+toggles:
+
+  # ------------------------------------------------------------- new entries
+  - id: api_compat
+    group: quality
+    title: API compatibility
+    summary: How far this change may alter the published API contract.
+    type: enum
+    values: [strict, additive, breaking]
+    default: strict
+    stage: [plan]
+    scope: [workspace, repo, task]
+    applies_to: ["**/openapi.yaml", "**/*.proto", "**/api-schema/**"]
+    risk: high
+    rationale: >
+      The schema is a contract with every client already in the field. Renaming
+      a field or tightening a type breaks them at run time, and the cost shows
+      up in someone else's incident channel. Declaring the intent up front is
+      cheaper than discovering it in staging.
+    impact:
+      strict: Additive changes only. Nothing removed, renamed, or narrowed. Deprecation uses the `deprecated` marker.
+      additive: New fields may land and old ones be marked obsolete, but nothing disappears in this delivery.
+      breaking: A break is allowed. Requires a migration note, a version bump, and an explicit line in the report.
+    question:
+      header: API compat
+      text: May this change alter the published API contract?
+      options:
+        - value: strict
+          label: Additive only
+          description: Nothing is removed, renamed or narrowed. Clients in the field keep working.
+        - value: additive
+          label: Add and deprecate
+          description: New fields land; old ones stay, marked obsolete.
+        - value: breaking
+          label: May break clients
+          description: Requires a migration note and a version bump. The break is recorded in the report.
+
+  - id: migration_plan
+    group: quality
+    title: Database migration
+    summary: Whether a schema change to the database ships with a reversible plan.
+    type: enum
+    values: [none, required]
+    default: required
+    stage: [plan, verify]
+    scope: [workspace, task]
+    applies_to: ["**/migrations/**", "**/schema.sql", "**/*.migration.ts"]
+    risk: high
+    rationale: >
+      A migration that cannot be rolled back turns a bad deploy into an outage
+      with no exit. The expand-migrate-contract shape costs one extra release
+      and buys a way back.
+    impact:
+      none: Migration ships as written. Only for additive, reversible changes.
+      required: The plan must be expand-migrate-contract, with the rollback path stated and exercised at the deploy gate.
+    question:
+      header: Migration
+      text: This change touches the database schema. How should it ship?
+      options:
+        - value: required
+          label: Reversible, in phases
+          description: Expand, migrate, contract — with a rollback path that gets exercised.
+        - value: none
+          label: Direct
+          description: Only sound when the change is additive and reversible on its own.
+
+  - id: feature_flag
+    group: quality
+    title: Feature flag
+    summary: Whether new behaviour ships disabled behind a flag.
+    type: enum
+    values: ["off", required]
+    default: required
+    stage: [plan]
+    scope: [workspace, task]
+    risk: medium
+    rationale: >
+      Shipping dark separates "deployed" from "released". It makes a rollback a
+      configuration change rather than a redeploy, which is the difference
+      between a minute and a release cycle.
+    impact:
+      "off": Behaviour is live as soon as it deploys.
+      required: The new path ships disabled; enabling it is a separate, explicit act.
+    question:
+      header: Flag
+      text: Should this behaviour ship behind a feature flag?
+      options:
+        - value: required
+          label: Yes, ship dark
+          description: Rollback becomes a config change instead of a redeploy.
+        - value: "off"
+          label: No, live on deploy
+          description: For changes with no user-visible behaviour to gate.
+
+  # -------------------------------------------------------------- overrides
+  # The core defines gate_level as a four-rung ladder. Acme inserts a contract
+  # rung between lint and build, because a schema break is worth catching before
+  # anything compiles.
+  - id: gate_level
+    overrides: true
+    values: [static, contract, build, deploy, behavior]
+    askable_values: [behavior, deploy, build, static]
+    impact:
+      static: ESLint and Prettier only.
+      contract: Adds the OpenAPI diff against the published contract.
+      build: Adds `npm run build` and the container image.
+      deploy: Adds `helm upgrade` against the target cluster.
+      behavior: Adds the end-to-end suite against the deployed service.
+
+  # The core defines deploy_mode as "how far the artifact travels". Acme names
+  # the actual rungs.
+  - id: deploy_mode
+    overrides: true
+    question:
+      options:
+        - value: fast
+          label: Sync into the pod
+          description: Seconds, and diverges from the image the registry holds. Flagged in the report.
+        - value: packaged
+          label: helm upgrade
+          description: Real chart, real image. The everyday path.
+        - value: full
+          label: Rebuild and roll out
+          description: Image rebuilt from scratch and rolled out. Faithful end to end, and the slowest.
+        - value: none
+          label: Do not deploy
+          description: Stops at the build; someone takes it further.
+
+  # Same idea for test depth: the core concept, Acme's suite names.
+  - id: test_depth
+    overrides: true
+    impact:
+      none: Only the assertions written for this change.
+      smoke: Adds `npm run test:smoke` — confirms the service answers.
+      related: Adds the Jest suites covering the touched packages.
+      full: Adds the Playwright end-to-end suite. Minutes, not seconds.

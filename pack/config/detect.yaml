@@ -1,0 +1,14 @@
+# How deck recognises an Acme workspace, and what it needs installed.
+#
+# Markers are checked before the descriptor is read — root resolution has to
+# happen first — so they cannot live in the descriptor itself.
+markers:
+  - .acme-root
+  - acme.code-workspace
+
+prerequisites:
+  - git
+  - { name: node, required: true }
+  - { name: docker, required: false }
+  - { name: helm, required: false }
+  - { name: kubectl, required: false }

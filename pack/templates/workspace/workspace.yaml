@@ -1,0 +1,68 @@
+# =============================================================================
+# ACME — WORKSPACE DESCRIPTOR
+# Copied to <workspace-root>/.deck/workspace.yaml by `deck init`.
+# =============================================================================
+# A pack's template wins over deck's neutral one: the core knows the format,
+# the pack knows the shape of this kind of workspace.
+#
+# NO CREDENTIALS HERE. Use an alias in ~/.ssh/config and reference the alias.
+# =============================================================================
+
+version: 1
+
+packs: []          # filled in by demo.sh, or point at this pack yourself
+
+requires:
+  - package.json
+
+# ------------------------------------------------------------------ repositories
+# `impacts` is the change-propagation graph. Read it as: when THIS changes, who
+# has to be revisited.
+repos:
+
+  api-schema:
+    path: services/api-schema
+    role: published API contract (OpenAPI)
+    remote_id: acme/api-schema
+    build_target: api-schema
+    lint: npm run lint
+    impacts: [api-server, web-client, e2e-suite]
+
+  api-server:
+    path: services/api-server
+    role: request handling and persistence
+    remote_id: acme/api-server
+    build_target: api-server
+    lint: npm run lint
+    deploy_path: /srv/api-server/
+    services: [api]
+    impacts: [e2e-suite]
+
+  web-client:
+    path: clients/web
+    role: browser client generated from the contract
+    remote_id: acme/web-client
+    build_target: web-client
+    lint: npm run lint
+    services: [web]
+    impacts: [e2e-suite]
+
+  e2e-suite:
+    path: tests/e2e
+    role: end-to-end assertions against the deployed service
+    remote_id: acme/e2e-suite
+    downstream: true          # keeps up, produces no artifact
+    impacts: []
+
+# ---------------------------------------------------------------------- targets
+# ALLOWLIST. The guard denies ssh, scp and http to anything not listed here.
+targets:
+  - host: staging.acme.internal
+    role: staging cluster
+    alias: acme-staging       # defined in your ~/.ssh/config
+    notes: shared; coordinate destructive tests
+
+# ---------------------------------------------------------------------- backlog
+backlog:
+  - type: roadmap
+    file: docs/roadmap.md
