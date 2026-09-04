@@ -19,6 +19,17 @@ cd deck-acme && ./demo.sh
 The demo builds a four-repository workspace in `mktemp -d`, points deck at this
 pack, and shows six things. Add `--keep` to explore the workspace afterwards.
 
+There is a second demo for the way large trees are usually assembled:
+
+```bash
+./demo-repo.sh
+```
+
+The same four projects, this time declared in a Google `repo` manifest with an
+include. It shows `deck import repo` generating the registry, then the part an
+importer cannot do — the `impacts` edges stay empty until someone who knows the
+system writes them, and `deck impact` says so plainly until they do.
+
 ```
 $ deck impact api-schema
 a change in api-schema reaches 3 repositories
