@@ -48,10 +48,28 @@ pack/
 ├── config/
 │   ├── detect.yaml       markers that identify an Acme workspace, tools it needs
 │   ├── toggles.yaml      three new decisions, three core ones relabelled
-│   └── profiles.yaml     release, dark_launch
+│   ├── profiles.yaml     release, dark_launch
+│   ├── gates.yaml        the verification ladder, with its own `contract` rung
+│   └── mount.yaml        what deck places in a repository when this pack is used
+├── rules/                `paths:`-scoped rules, symlinked in on mount
 └── templates/workspace/
     └── workspace.yaml    a filled-in descriptor for this shape of workspace
 ```
+
+### The ladder
+
+```
+ladder   static -> contract -> build -> deploy -> behavior
+```
+
+Acme inserts `contract` between lint and build, because an OpenAPI break is
+worth catching before anything compiles. The engine never learns what that rung
+means — it reads the rungs off the `gate_level` toggle, which this pack extends,
+and runs the command each gate declares.
+
+The deploy gate carries `when: {deploy_mode: [fast, packaged, full]}`, so while
+that question is unanswered the gate reports *not applicable, deploy_mode is
+`ask`* rather than quietly doing nothing.
 
 ### New decisions
 

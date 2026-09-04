@@ -40,6 +40,7 @@ for repo in services/api-schema services/api-server clients/web-client tests/e2e
   mkdir -p "$WS/$repo"
   git -C "$WS/$repo" init -q
   echo "placeholder for $repo" > "$WS/$repo/README.md"
+  printf '{ "name": "%s", "scripts": { "lint": "echo lint ok" } }\n' "$(basename "$repo")" > "$WS/$repo/package.json"
 done
 printf 'openapi: 3.1.0\ninfo: { title: Acme API, version: 1.0.0 }\n' \
   > "$WS/services/api-schema/openapi.yaml"
@@ -91,6 +92,13 @@ say "6. Switch posture in one phrase"
 run toggle profile release --scope task
 run toggle get test_depth
 run toggle get api_compat
+
+say "7. The verification ladder, declared by this pack"
+run gate list --repos api-schema
+
+say "8. Climb it"
+run toggle set deploy_mode packaged --scope task
+run gate run --task DEMO --repos api-schema
 
 if [ "$KEEP" = "--keep" ]; then
   cat <<KEPT

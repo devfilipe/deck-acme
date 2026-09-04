@@ -63,6 +63,7 @@ for repo in services/api-schema services/api-server clients/web-client tests/e2e
   mkdir -p "$WS/$repo"
   git -C "$WS/$repo" init -q
   echo "placeholder for $repo" > "$WS/$repo/README.md"
+  printf '{ "name": "%s", "scripts": { "lint": "echo lint ok" } }\n' "$(basename "$repo")" > "$WS/$repo/package.json"
 done
 
 export DECK_ROOT="$WS"   # the pack comes later: the point here is generating the registry

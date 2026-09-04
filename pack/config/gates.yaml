@@ -1,0 +1,51 @@
+# The verification ladder for an Acme workspace.
+#
+# The engine knows the shape — which rungs apply, over which repositories, in
+# what order, and what counts as evidence. It knows nothing about npm or helm.
+# Every command below is a string this pack wrote.
+#
+# Rungs come from the `gate_level` toggle, which this pack extends with
+# `contract` between `static` and `build`.
+
+version: 1
+
+gates:
+
+  - id: static
+    title: Lint and format
+    from_level: static
+    per_repo: "${repo.lint}"
+    timeout: 300
+
+  - id: contract
+    title: API contract diff
+    from_level: contract
+    only_repos: [api-schema]
+    per_repo: "test -f openapi.yaml && echo 'contract unchanged (stub)'"
+    timeout: 300
+    # An OpenAPI break is worth catching before anything compiles, which is why
+    # this rung sits below `build` rather than beside the tests.
+
+  - id: build
+    title: Build
+    from_level: build
+    per_repo: "echo 'building ${repo.build_target} (stub)'"
+    subagent: true
+    timeout: 1800
+
+  - id: deploy
+    title: Deploy to the target
+    from_level: deploy
+    when:
+      deploy_mode: [fast, packaged, full]
+    once: "echo 'deploying ${toggle.deploy_mode} to ${target.host} (stub)'"
+    timeout: 900
+
+  - id: behavior
+    title: Suite against the deployed service
+    from_level: behavior
+    when:
+      test_depth: [smoke, related, full]
+    once: "echo 'running ${toggle.test_depth} suite against ${target.host} (stub)'"
+    subagent: true
+    timeout: 1800
