@@ -6,6 +6,12 @@
 #
 # Rungs come from the `gate_level` toggle, which this pack extends with
 # `contract` between `static` and `build`.
+#
+# The commands below are deliberately illustrative — they echo rather than build,
+# so the demos run anywhere in a second and with no toolchain installed. In a
+# real pack these are `npm run build`, `helm upgrade`, `npx playwright test`.
+# What is NOT illustrative is everything around them: the rungs, the `when`
+# conditions, the per-repository scoping, and the evidence the engine records.
 
 version: 1
 

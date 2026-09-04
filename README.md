@@ -1,5 +1,7 @@
 # deck-acme
 
+[![ci](https://github.com/devfilipe/deck-acme/actions/workflows/ci.yml/badge.svg)](https://github.com/devfilipe/deck-acme/actions/workflows/ci.yml)
+
 An example extension pack for [deck](https://github.com/devfilipe/deck), plus a
 demo that materialises a throwaway workspace and walks through it.
 
@@ -101,6 +103,11 @@ vocabulary:
 
 `gate_level` gains a rung: Acme inserts `contract` between lint and build,
 because an OpenAPI break is worth catching before anything compiles.
+
+The gate commands in `pack/config/gates.yaml` echo rather than build, so the
+demos run anywhere in a second with no toolchain installed. Everything around
+them is real: the rungs, the `when` conditions, the per-repository scoping, and
+the evidence the engine records.
 
 ## The point of this repository
 
