@@ -10,15 +10,16 @@
 #   ./demo-repo.sh --keep     leave the workspace on disk
 set -euo pipefail
 
-PACK="$(cd "$(dirname "${BASH_SOURCE[0]}")/pack" && pwd)"
+PACKS="$(cd "$(dirname "${BASH_SOURCE[0]}")/packs" && pwd)"
+PACK="$PACKS/_workspace"
 KEEP="${1:-}"
 
 if [ -n "${DECK_BIN:-}" ]; then
   DECK="$DECK_BIN"
 elif command -v deck >/dev/null; then
   DECK="$(command -v deck)"
-elif [ -x "$(dirname "$PACK")/../deck/plugins/deck/bin/deck" ]; then
-  DECK="$(cd "$(dirname "$PACK")/../deck" && pwd)/plugins/deck/bin/deck"
+elif [ -x "$(dirname "$PACKS")/../deck/plugins/deck/bin/deck" ]; then
+  DECK="$(cd "$(dirname "$PACKS")/../deck" && pwd)/plugins/deck/bin/deck"
 else
   echo "deck not found. Set DECK_BIN, or clone github.com/devfilipe/deck next to this one." >&2
   exit 1
@@ -81,7 +82,7 @@ BANNER
 say "1. deck notices how the tree is assembled"
 run init
 
-export DECK_PACKS="$PACK"
+export DECK_PACKS_ROOT="$PACKS"
 
 say "2. What would the import add?"
 run import repo

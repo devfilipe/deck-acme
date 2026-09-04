@@ -10,7 +10,7 @@
 
 version: 1
 
-packs: []          # filled in by demo.sh, or point at this pack yourself
+packs_root: []     # filled in by demo.sh, or point at the collection yourself
 
 requires:
   - package.json

@@ -8,7 +8,7 @@ demo that materialises a throwaway workspace and walks through it.
 Acme is a small SaaS: an OpenAPI contract, a server, a web client generated from
 the contract, and an end-to-end suite. Nothing here is real, and that is the
 point — **deck has never heard of Acme.** Everything domain-specific below
-arrives from `pack/config/*.yaml` as declarative data.
+arrives from `packs/_workspace/config/*.yaml` as declarative data.
 
 ## Try it
 
@@ -46,7 +46,7 @@ execution order:
 ## What the pack contributes
 
 ```
-pack/
+packs/_workspace/          ← `_workspace` applies to every repository
 ├── config/
 │   ├── detect.yaml       markers that identify an Acme workspace, tools it needs
 │   ├── toggles.yaml      three new decisions, three core ones relabelled
@@ -104,7 +104,7 @@ vocabulary:
 `gate_level` gains a rung: Acme inserts `contract` between lint and build,
 because an OpenAPI break is worth catching before anything compiles.
 
-The gate commands in `pack/config/gates.yaml` echo rather than build, so the
+The gate commands in `packs/_workspace/config/gates.yaml` echo rather than build, so the
 demos run anywhere in a second with no toolchain installed. Everything around
 them is real: the rungs, the `when` conditions, the per-repository scoping, and
 the evidence the engine records.
@@ -120,7 +120,7 @@ hardware benches. Same engine, no branches, no flags.
 
 ## Writing your own
 
-Copy `pack/`, keep the structure, replace the content:
+Copy `packs/_workspace/`, keep the structure, replace the content:
 
 1. `detect.yaml` — one or two files only your workspace has, plus the tools
    `deck doctor` should check for.

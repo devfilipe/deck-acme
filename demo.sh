@@ -8,7 +8,8 @@
 # anywhere, as many times as you like.
 set -euo pipefail
 
-PACK="$(cd "$(dirname "${BASH_SOURCE[0]}")/pack" && pwd)"
+PACKS="$(cd "$(dirname "${BASH_SOURCE[0]}")/packs" && pwd)"
+PACK="$PACKS/_workspace"
 KEEP="${1:-}"
 
 # Find deck: an explicit path, then $PATH, then a sibling clone.
@@ -16,8 +17,8 @@ if [ -n "${DECK_BIN:-}" ]; then
   DECK="$DECK_BIN"
 elif command -v deck >/dev/null; then
   DECK="$(command -v deck)"
-elif [ -x "$(dirname "$PACK")/../deck/plugins/deck/bin/deck" ]; then
-  DECK="$(cd "$(dirname "$PACK")/../deck" && pwd)/plugins/deck/bin/deck"
+elif [ -x "$(dirname "$PACKS")/../deck/plugins/deck/bin/deck" ]; then
+  DECK="$(cd "$(dirname "$PACKS")/../deck" && pwd)/plugins/deck/bin/deck"
 else
   echo "deck not found. Set DECK_BIN=/path/to/deck, or clone" >&2
   echo "https://github.com/devfilipe/deck next to this repository." >&2
@@ -46,7 +47,7 @@ printf 'openapi: 3.1.0\ninfo: { title: Acme API, version: 1.0.0 }\n' \
   > "$WS/services/api-schema/openapi.yaml"
 
 mkdir -p "$WS/.deck"
-sed "s|^packs: \[\]|packs: [$PACK]|" pack/templates/workspace/workspace.yaml > "$WS/.deck/workspace.yaml"
+sed "s|^packs_root: \[\]|packs_root: [$PACKS]|" packs/_workspace/templates/workspace/workspace.yaml > "$WS/.deck/workspace.yaml"
 
 export DECK_ROOT="$WS"
 
