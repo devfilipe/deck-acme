@@ -12,7 +12,7 @@ version: 1
 
 packs_root: []     # filled in by demo.sh, or point at the collection yourself
 
-requires:
+requires_files:
   - package.json
 
 # ------------------------------------------------------------------ repositories
