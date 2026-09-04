@@ -39,7 +39,7 @@ repos:
     impacts: [e2e-suite]
 
   web-client:
-    path: clients/web
+    path: clients/web-client
     role: browser client generated from the contract
     remote_id: acme/web-client
     build_target: web-client
@@ -48,7 +48,7 @@ repos:
     impacts: [e2e-suite]
 
   e2e-suite:
-    path: tests/e2e
+    path: tests/e2e-suite
     role: end-to-end assertions against the deployed service
     remote_id: acme/e2e-suite
     downstream: true          # keeps up, produces no artifact

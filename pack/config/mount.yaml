@@ -1,0 +1,19 @@
+# What deck places in a repository when this pack is in play.
+#
+# Order of preference is deck's, not ours: the plugin entry keeps the content in
+# one versioned place and costs the repository three lines of local settings.
+# Rules are symlinked, so `ls -l` shows where they came from. Nothing here
+# copies a file into a product repository.
+
+plugin: deck-acme@acme
+
+marketplace:
+  name: acme
+  source:
+    source: url
+    url: https://github.com/devfilipe/deck-acme.git
+
+rules:
+  - file: rules/api-contract.md
+    repos: [api-schema]        # only where it applies
+  - file: rules/service-conventions.md

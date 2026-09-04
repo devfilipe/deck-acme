@@ -36,7 +36,7 @@ echo '{ "name": "acme" }' > "$WS/package.json"
 mkdir -p "$WS/docs"
 printf '# Roadmap\n\n- [ ] rate limiting\n- [ ] audit log\n' > "$WS/docs/roadmap.md"
 
-for repo in services/api-schema services/api-server clients/web tests/e2e; do
+for repo in services/api-schema services/api-server clients/web-client tests/e2e-suite; do
   mkdir -p "$WS/$repo"
   git -C "$WS/$repo" init -q
   echo "placeholder for $repo" > "$WS/$repo/README.md"
