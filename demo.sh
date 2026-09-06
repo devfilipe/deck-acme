@@ -90,7 +90,7 @@ for a in plan["assumed"]:
 '
 
 say "6. Switch posture in one phrase"
-run toggle profile release --scope task
+run toggle profile release --at task
 run toggle get test_depth
 run toggle get api_compat
 
@@ -98,7 +98,7 @@ say "7. The verification ladder, declared by this pack"
 run gate list --repos api-schema
 
 say "8. Climb it"
-run toggle set deploy_mode packaged --scope task
+run toggle set deploy_mode packaged --at task
 run gate run --task DEMO --repos api-schema
 
 if [ "$KEEP" = "--keep" ]; then
