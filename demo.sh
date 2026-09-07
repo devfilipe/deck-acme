@@ -197,9 +197,44 @@ run board done ACME-11 --yes \
   --accept "A repeated request carrying the same key returns the first result" \
   --accept "The key is published in the contract, not inferred by the client"
 run unmount --task ACME-11
-note "  Nothing deck placed is left behind, and nothing it did not place is touched:
-  the manifest written at step 8 is the whole list. Now the page a reviewer
-  reads instead of the diff:"
+
+note "  That is deck's report of what it took back. This repository exists to check
+  claims rather than repeat them, so the demo asks git the same question —
+  with the reader's personal ignore rules switched off, because a promise that
+  only holds on machines carrying the right ~/.config/git/ignore is not one:"
+
+printf '\n\033[2m$ git -C <each repository> -c core.excludesFile=/dev/null status --porcelain\033[0m\n'
+LEFTOVERS=""
+for repo in services/api-schema services/api-server clients/web-client tests/e2e-suite; do
+  dirty="$(git -C "$WS/$repo" -c core.excludesFile=/dev/null status --porcelain)"
+  if [ -n "$dirty" ]; then
+    LEFTOVERS="$LEFTOVERS $repo"
+    printf '  %-14s %s\n' "$(basename "$repo")" "$(echo "$dirty" | tr '\n' ' ')"
+  else
+    printf '  %-14s clean\n' "$(basename "$repo")"
+  fi
+done
+
+if [ -n "$LEFTOVERS" ]; then
+  cat <<'LEFT'
+
+  The unmount above said `0 left alone` and exited 0, and something is still
+  there. What survives is `.claude/settings.local.json`, holding the
+  `extraKnownMarketplaces` entry deck wrote on mount: the manifest records the
+  plugins it added and not the marketplace, so unmount takes back one of the two
+  things mount wrote and keeps the file alive for the other. The same unmount
+  drops deck's `.git/info/exclude` block, so the leftover becomes visible to
+  `git status` at the exact moment deck stops hiding it.
+
+  Nothing here is Acme's to fix. `deck bundle` would refuse the merge over the
+  dirty tree next, and it would be right to; the demo stops here instead, so
+  the reason is the leftover rather than the verdict about it.
+
+LEFT
+  exit 1
+fi
+
+note "  Now the page a reviewer reads instead of the diff:"
 run bundle --task ACME-11
 note "  READY is a claim with a file behind every line of it, and the note left open
   is honest rather than tidy: three repositories this change reaches carry no

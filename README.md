@@ -25,6 +25,12 @@ the ladder climbed, the number a rung kept across two runs, and the bundle a
 reviewer reads instead of the diff. Add `--keep` to explore the workspace
 afterwards.
 
+The unmount near the end is *checked*, not narrated: the demo asks git whether
+the four repositories are clean, with the reader's personal ignore rules
+switched off, because a promise that only holds on machines carrying the right
+`~/.config/git/ignore` is not one. If anything deck placed survived, the demo
+names the file and stops.
+
 There are two more demos. The first is one initiative inside the same
 workspace:
 
