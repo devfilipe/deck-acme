@@ -30,8 +30,13 @@ jobs:
       - name: The hand-written descriptor demo
         run: DECK_BIN=/tmp/deck/plugins/deck/bin/deck ./demo.sh
 
+      # `if: always()` so one broken demo does not hide the state of the others.
+      # Each is an independent probe of the engine; which of them fail is the
+      # finding, and a run that stops at the first tells us less than it could.
       - name: The scope and consultation demo
+        if: always()
         run: DECK_BIN=/tmp/deck/plugins/deck/bin/deck ./demo-scope.sh
 
       - name: The repo-manifest demo
+        if: always()
         run: DECK_BIN=/tmp/deck/plugins/deck/bin/deck ./demo-repo.sh
