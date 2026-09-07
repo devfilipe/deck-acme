@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 # This repository's job is to prove the engine stays domain-agnostic. So its CI
-# fetches deck and runs both demos unedited: if a change to deck breaks them,
+# fetches deck and runs all three demos unedited: if a change to deck breaks one,
 # the change belonged in a pack.
 jobs:
   demos:
@@ -29,6 +29,9 @@ jobs:
 
       - name: The hand-written descriptor demo
         run: DECK_BIN=/tmp/deck/plugins/deck/bin/deck ./demo.sh
+
+      - name: The scope and consultation demo
+        run: DECK_BIN=/tmp/deck/plugins/deck/bin/deck ./demo-scope.sh
 
       - name: The repo-manifest demo
         run: DECK_BIN=/tmp/deck/plugins/deck/bin/deck ./demo-repo.sh

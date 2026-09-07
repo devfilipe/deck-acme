@@ -2,8 +2,9 @@
 #
 # Order of preference is deck's, not ours: the plugin entry keeps the content in
 # one versioned place and costs the repository three lines of local settings.
-# Rules are symlinked, so `ls -l` shows where they came from. Nothing here
-# copies a file into a product repository.
+# A rule is copied rather than linked — Claude Code does not follow a symlink in
+# `.claude/rules/`, so a link would report success and reach nobody. Provenance
+# lives in the mount manifest, which is where `deck unmount` reads it anyway.
 
 plugin: deck-acme@acme
 

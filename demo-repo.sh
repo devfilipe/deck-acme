@@ -29,7 +29,14 @@ WS="$(mktemp -d)"
 [ "$KEEP" = "--keep" ] || trap 'rm -rf "$WS"' EXIT
 
 say() { printf '\n\033[1m%s\033[0m\n' "$1"; }
-run() { printf '\n\033[2m$ deck %s\033[0m\n' "$*"; "$DECK" "$@"; }
+run() {
+  local shown=() a
+  for a in "$@"; do
+    case "$a" in *[[:space:]]*) shown+=("\"$a\"") ;; *) shown+=("$a") ;; esac
+  done
+  printf '\n\033[2m$ deck %s\033[0m\n' "${shown[*]}"
+  "$DECK" "$@"
+}
 
 # ------------------------------------------------- a repo-assembled workspace
 : > "$WS/.acme-root"
@@ -90,8 +97,8 @@ run import repo
 say "3. Fold it in"
 run import repo --write
 
-printf '\n\033[2m$ sed -n "/^repos:/,/^targets:/p" .deck/workspace.yaml\033[0m\n'
-sed -n '/^repos:/,/^targets:/p' "$WS/.deck/workspace.yaml" | head -24
+printf '\n\033[2m$ awk "/^repos:/,/^scopes:/" .deck/workspace.yaml   # comments stripped\033[0m\n'
+awk '/^repos:/,/^scopes:/' "$WS/.deck/workspace.yaml" | grep -v '^ *#' | sed '/^$/d;$d'
 
 say "4. The half a manifest cannot answer"
 run impact api-schema
@@ -101,6 +108,23 @@ cat <<'NOTE'
   Every repository is known, and the chain is empty. That is correct: the
   manifest declares a checkout, not a propagation. Nothing in it says that
   changing the schema forces the client to be regenerated.
+
+NOTE
+
+run targets
+run scopes
+
+cat <<'NOTE'
+
+  Two more blanks, for the same reason — and the second one names what is
+  missing. The manifest declares a git remote, ssh://git@git.acme.example/, and
+  deck refuses to read that as permission to reach a machine: an allowlist is a
+  decision somebody makes, not a line lifted out of a checkout file.
+
+  How the product is carved into initiatives is a judgement about attention,
+  and no manifest has ever recorded one. The pack ships that judgement; this
+  descriptor was written before the pack was in play, so deck names the scope
+  it is missing and where to copy it from rather than adopting it quietly.
 
   So we write the edges — once, by someone who knows the system.
 

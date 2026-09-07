@@ -54,6 +54,25 @@ repos:
     downstream: true          # keeps up, produces no artifact
     impacts: []
 
+# ----------------------------------------------------------------------- scopes
+# A scope names a subset of `repos:` and gives it a board and a posture of its
+# own. It never changes what the graph knows: `deck --scope checkout impact
+# api-schema` still names web-client, and marks it as outside.
+#
+# This block lives in the pack's template rather than in one person's `.deck/`,
+# because how the product is carved into initiatives is the team's answer. A
+# scope only your machine declares is a scope only you have.
+scopes:
+  checkout:
+    title: Checkout hardening
+    repos: [api-schema, api-server]
+
+# ------------------------------------------------------------------------ paths
+# Directories the workspace uses but never changes: a tools checkout, a vendor
+# drop. A gate says `${path.contract_tools}` and stays portable; where the
+# checkout actually is stays here, per machine. Filled in by the demo.
+paths: {}
+
 # ---------------------------------------------------------------------- targets
 # ALLOWLIST. The guard denies ssh, scp and http to anything not listed here.
 targets:
@@ -63,6 +82,10 @@ targets:
     notes: shared; coordinate destructive tests
 
 # ---------------------------------------------------------------------- backlog
+# Two shapes: a markdown checklist deck reads and never writes, and a tasks file
+# it reads and writes. The reader is chosen by the extension, not by `type:`.
 backlog:
   - type: roadmap
     file: docs/roadmap.md
+  - type: tasks
+    file: docs/board.yaml

@@ -19,9 +19,28 @@ cd deck-acme && ./demo.sh
 ```
 
 The demo builds a four-repository workspace in `mktemp -d`, points deck at this
-pack, and shows six things. Add `--keep` to explore the workspace afterwards.
+pack, and walks one task from the board to the merge bundle: the impact graph,
+the decisions and where each came from, the pack mounted into the repositories,
+the ladder climbed, the number a rung kept across two runs, and the bundle a
+reviewer reads instead of the diff. Add `--keep` to explore the workspace
+afterwards.
 
-There is a second demo for the way large trees are usually assembled:
+There are two more demos. The first is one initiative inside the same
+workspace:
+
+```bash
+./demo-scope.sh
+```
+
+`scopes:` names a subset of the registry — here `checkout`, which holds the
+schema and the server and leaves the client out — and every command narrows to
+it: its repositories, its board, its posture, and a pack bound to it that loads
+under `deck --scope checkout` and nowhere else. It ends with a question the
+catalog had no entry for being raised, answered by a person, and folded into
+that pack as a catalog entry, so the next run reads a decision instead of
+asking again.
+
+The second is for the way large trees are usually assembled:
 
 ```bash
 ./demo-repo.sh
@@ -34,14 +53,15 @@ system writes them, and `deck impact` says so plainly until they do.
 
 ```
 $ deck impact api-schema
-a change in api-schema reaches 3 repositories
+a change in api-schema reaches 0 repositories
 
 execution order:
-  1. api-schema  build api-schema
-  2. api-server  build api-server
-  3. web-client  build web-client
-  4. e2e-suite   (downstream — keep up, does not build)
+  1. api-schema
 ```
+
+The same is true of `targets:` and `scopes:`: a manifest declares a checkout, so
+deck refuses to read a git remote as permission to reach a machine, and it will
+not invent a carve-up nobody wrote down.
 
 ## What the pack contributes
 
@@ -53,9 +73,10 @@ packs/_workspace/          ← `_workspace` applies to every repository
 │   ├── profiles.yaml     release, dark_launch
 │   ├── gates.yaml        the verification ladder, with its own `contract` rung
 │   └── mount.yaml        what deck places in a repository when this pack is used
-├── rules/                `paths:`-scoped rules, symlinked in on mount
+├── rules/                `paths:`-scoped rules, placed on mount
 └── templates/workspace/
-    └── workspace.yaml    a filled-in descriptor for this shape of workspace
+    └── workspace.yaml    the registry, its `impacts` edges, the target
+                          allowlist, the boards, and the `checkout` scope
 ```
 
 ### The ladder
@@ -72,6 +93,26 @@ and runs the command each gate declares.
 The deploy gate carries `when: {deploy_mode: [fast, packaged, full]}`, so while
 that question is unanswered the gate reports *not applicable, deploy_mode is
 `ask`* rather than quietly doing nothing.
+
+The `contract` rung also keeps a number. `measures:` is a regex over output the
+gate already produced, so nothing runs twice and no second command can disagree
+with the first:
+
+```yaml
+measures:
+  - id: published_paths
+    pattern: '(\d+) paths published'
+    unit: paths
+```
+
+No `better:`, deliberately — an API with more paths in it is neither better nor
+worse, and `deck metrics show` says so: *2 -> 3 paths across 2 runs, +1 — no
+`better:` is declared, so this is movement, not a verdict.* The engine keeps the
+series without ever learning what an OpenAPI path is.
+
+The command behind the rung is `sh ${path.contract_tools}/contract-diff.sh`. The
+pack names the tool; `paths:` in the descriptor says where that checkout lives on
+this machine, which is how the pack travels and the location stays yours.
 
 ### New decisions
 
@@ -104,10 +145,42 @@ vocabulary:
 `gate_level` gains a rung: Acme inserts `contract` between lint and build,
 because an OpenAPI break is worth catching before anything compiles.
 
-The gate commands in `packs/_workspace/config/gates.yaml` echo rather than build, so the
-demos run anywhere in a second with no toolchain installed. Everything around
-them is real: the rungs, the `when` conditions, the per-repository scoping, and
+The gate commands in `packs/_workspace/config/gates.yaml` echo, or call a
+stand-in script, rather than build, so the demos run anywhere in a second with no
+toolchain installed. Everything around them is real: the rungs, the `when`
+conditions, the per-repository scoping, the number the contract rung keeps, and
 the evidence the engine records.
+
+### One initiative
+
+```yaml
+scopes:
+  checkout:
+    title: Checkout hardening
+    repos: [api-schema, api-server]
+```
+
+Four lines in the pack's template, and every command has a narrowed form. The
+one that earns its place is `deck scope checkout`, which reports what the
+boundary *leaks* — `reaches web-client, e2e-suite (outside the scope, still has
+to keep up)` — because an initiative drawn around two of four repositories is a
+claim about attention, not about the graph, and the graph is unchanged.
+
+## What the demos exercise
+
+Between them the three scripts drive most of deck's surface against a domain it
+has never heard of.
+
+| | Commands |
+|---|---|
+| `demo.sh` | `doctor` · `impact` · `order` · `paths` · `toggle` (list, explain, get, set, profile, ask-plan) · `board` (show, why, claim, done) · `mount` · `mounts` · `unmount` · `gate` (list, run) · `metrics show` · `bundle` |
+| `demo-scope.sh` | `scopes` · `scope` · `--scope` · `repos` · `packs` · `pack` (new, validate) · `ask` (new, list, resolve, fold) · `toggle` (set at a scope, explain) · `board list` · `impact` |
+| `demo-repo.sh` | `init` · `import repo` · `impact` · `targets` · `scopes` · `toggle explain` |
+
+Still untouched: `root`, `info`, `path`, `get`, `setup`, `hold`,
+`propose`, `cost`, `gate report`, `board` (plan, new, template, ask-plan,
+whoami), `pack` (list, review, sources, add, update), `console`, `ui`,
+`statusline`.
 
 ## The point of this repository
 
@@ -127,7 +200,9 @@ Copy `packs/_workspace/`, keep the structure, replace the content:
 2. `toggles.yaml` — the decisions your team keeps re-making. Give each one a
    question, options with descriptions, and the reason for the default.
 3. `templates/workspace/workspace.yaml` — the repository registry with its
-   `impacts` edges, and the target allowlist.
+   `impacts` edges, the target allowlist, and — if the work is carved into
+   initiatives — `scopes:`, which belongs here rather than in one person's
+   `.deck/` because a scope only your machine declares is a scope only you have.
 
 Point deck at it with `DECK_PACKS=/path/to/pack` or by listing it under `packs:`
 in the descriptor.
