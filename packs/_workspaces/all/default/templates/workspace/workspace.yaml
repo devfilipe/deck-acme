@@ -1,0 +1,91 @@
+# =============================================================================
+# ACME — WORKSPACE DESCRIPTOR
+# Copied to <workspace-root>/.deck/workspace.yaml by `deck init`.
+# =============================================================================
+# A pack's template wins over deck's neutral one: the core knows the format,
+# the pack knows the shape of this kind of workspace.
+#
+# NO CREDENTIALS HERE. Use an alias in ~/.ssh/config and reference the alias.
+# =============================================================================
+
+version: 1
+
+packs_root: []     # filled in by demo.sh, or point at the collection yourself
+
+requires_files:
+  - package.json
+
+# ------------------------------------------------------------------ repositories
+# `impacts` is the change-propagation graph. Read it as: when THIS changes, who
+# has to be revisited.
+repos:
+
+  api-schema:
+    path: services/api-schema
+    role: published API contract (OpenAPI)
+    remote_id: acme/api-schema
+    build_target: api-schema
+    lint: npm run lint
+    impacts: [api-server, web-client, e2e-suite]
+
+  api-server:
+    path: services/api-server
+    role: request handling and persistence
+    remote_id: acme/api-server
+    build_target: api-server
+    lint: npm run lint
+    deploy_path: /srv/api-server/
+    services: [api]
+    impacts: [e2e-suite]
+
+  web-client:
+    path: clients/web-client
+    role: browser client generated from the contract
+    remote_id: acme/web-client
+    build_target: web-client
+    lint: npm run lint
+    services: [web]
+    impacts: [e2e-suite]
+
+  e2e-suite:
+    path: tests/e2e-suite
+    role: end-to-end assertions against the deployed service
+    remote_id: acme/e2e-suite
+    downstream: true          # keeps up, produces no artifact
+    impacts: []
+
+# ----------------------------------------------------------------------- scopes
+# A scope names a subset of `repos:` and gives it a board and a posture of its
+# own. It never changes what the graph knows: `deck --scope checkout impact
+# api-schema` still names web-client, and marks it as outside.
+#
+# This block lives in the pack's template rather than in one person's `.deck/`,
+# because how the product is carved into initiatives is the team's answer. A
+# scope only your machine declares is a scope only you have.
+scopes:
+  checkout:
+    title: Checkout hardening
+    repos: [api-schema, api-server]
+
+# ------------------------------------------------------------------------ paths
+# Directories the workspace uses but never changes: a tools checkout, a vendor
+# drop. A gate says `${path.contract_tools}` and stays portable; where the
+# checkout actually is stays here, per machine. Filled in by the demo.
+paths: {}
+
+# ---------------------------------------------------------------------- targets
+# ALLOWLIST. The guard denies ssh, scp and http to anything not listed here.
+targets:
+  - host: staging.acme.internal
+    role: staging cluster
+    alias: acme-staging       # defined in your ~/.ssh/config
+    notes: shared; coordinate destructive tests
+
+# ---------------------------------------------------------------------- backlog
+# Two shapes: a markdown checklist deck reads and never writes, and a tasks file
+# it reads and writes. The reader is chosen by the extension, not by `type:`.
+backlog:
+  - type: roadmap
+    file: docs/roadmap.md
+  - type: tasks
+    file: docs/board.yaml
